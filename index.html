@@ -2,46 +2,379 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Quiz Utilisateur</title>
+<title>Quiz Amoureux 💕</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-body { font-family: Arial; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-.quiz-container { background:#fff; padding:30px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1); width:400px; }
-h2 { margin-bottom:20px; }
-.option { display:block; margin:10px 0; padding:10px; border:2px solid #ccc; border-radius:10px; cursor:pointer; transition:0.2s; }
-.option:hover { background:#f0f0f0; border-color:#ff8c00; }
-.submit-btn { margin-top:20px; padding:10px 20px; border:none; background:#ff8c00; color:#fff; font-size:16px; border-radius:10px; cursor:pointer; }
-.submit-btn:hover { background:#e67e00; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose:      #e8537a;
+    --rose-light:#f9c4d2;
+    --rose-pale: #fdf0f4;
+    --bordeaux:  #8b2252;
+    --gold:      #c9956c;
+    --cream:     #fdf6ef;
+    --text:      #3a1a28;
+    --muted:     #9e6b80;
+  }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* === PÉTALES FLOTTANTES === */
+  .petal {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle at 40% 35%, #f9c4d2, #e8537a88);
+    border-radius: 0 50% 50% 50%;
+    transform: rotate(45deg);
+    opacity: 0;
+    animation: fall linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-60px) rotate(0deg);   opacity: 0; }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* === FOND DÉCORATIF === */
+  body::before {
+    content:'';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 10%,  #f9c4d230 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 85% 90%,  #e8537a18 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 80% 20%,  #c9956c15 0%, transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* === CARTE PRINCIPALE === */
+  .quiz-container {
+    position: relative;
+    z-index: 1;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(232,83,122,0.18);
+    border-radius: 28px;
+    padding: 40px 36px 36px;
+    width: min(520px, 94vw);
+    max-height: 92vh;
+    overflow: auto;
+    box-shadow:
+      0 8px 48px rgba(139,34,82,0.12),
+      0 2px 12px rgba(232,83,122,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+    animation: cardIn 0.7s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes cardIn {
+    from { opacity:0; transform: translateY(28px) scale(.97); }
+    to   { opacity:1; transform: translateY(0)    scale(1); }
+  }
+  .quiz-container::-webkit-scrollbar { width: 4px; }
+  .quiz-container::-webkit-scrollbar-thumb { background: var(--rose-light); border-radius: 4px; }
+
+  /* === EN-TÊTE === */
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .header .hearts {
+    font-size: 1.6rem;
+    letter-spacing: 6px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.55rem;
+    color: var(--bordeaux);
+    margin: 8px 0 4px;
+    letter-spacing: .5px;
+  }
+  .header p {
+    font-size: .8rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  /* === BARRE DE PROGRESSION === */
+  .progress-wrap {
+    margin-bottom: 26px;
+  }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: .75rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: .5px;
+  }
+  .progress-bar {
+    height: 5px;
+    background: var(--rose-light);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rose-light), var(--rose), var(--bordeaux));
+    border-radius: 10px;
+    transition: width .45s cubic-bezier(.22,1,.36,1);
+  }
+
+  /* === QUESTION === */
+  .question-label {
+    font-size: .7rem;
+    font-weight: 400;
+    color: var(--rose);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  #question {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.18rem;
+    color: var(--text);
+    line-height: 1.55;
+    margin-bottom: 20px;
+    min-height: 56px;
+    animation: fadeQ .35s ease both;
+  }
+  @keyframes fadeQ {
+    from { opacity:0; transform: translateX(12px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+
+  /* === OPTIONS === */
+  #options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .option {
+    padding: 12px 14px;
+    border: 1.5px solid rgba(232,83,122,0.22);
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: .88rem;
+    color: var(--text);
+    background: rgba(255,255,255,0.7);
+    transition: all .22s ease;
+    user-select: none;
+    text-align: center;
+    line-height: 1.35;
+    position: relative;
+    overflow: hidden;
+  }
+  .option::before {
+    content:'';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #f9c4d240, transparent);
+    opacity: 0;
+    transition: opacity .22s;
+  }
+  .option:hover {
+    border-color: var(--rose);
+    color: var(--bordeaux);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(232,83,122,0.15);
+  }
+  .option:hover::before { opacity:1; }
+  .option.selected {
+    border-color: var(--rose);
+    background: linear-gradient(135deg, #fce8ef, #fdf0f4);
+    color: var(--bordeaux);
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(232,83,122,0.2);
+  }
+  .option.selected::after {
+    content: '♥';
+    position: absolute;
+    top: 5px; right: 8px;
+    font-size: .6rem;
+    color: var(--rose);
+    animation: popIn .2s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0); }
+    to   { transform: scale(1); }
+  }
+
+  /* === BOUTON === */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--rose), var(--bordeaux));
+    color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    border-radius: 14px;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: all .25s ease;
+    box-shadow: 0 4px 20px rgba(139,34,82,0.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .submit-btn::after {
+    content:'';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  }
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(139,34,82,0.35);
+  }
+  .submit-btn:active { transform: translateY(0); }
+
+  /* === FIN === */
+  .fin-wrap {
+    text-align: center;
+    padding: 20px 0;
+    animation: cardIn .6s ease both;
+  }
+  .fin-wrap .big-heart { font-size: 3.5rem; animation: pulse 1.5s infinite; display:block; margin-bottom: 16px; }
+  .fin-wrap h2 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--bordeaux);
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+  .fin-wrap p {
+    color: var(--muted);
+    font-size: .9rem;
+    line-height: 1.6;
+  }
+
+  /* Scrollbar Firefox */
+  .quiz-container { scrollbar-width: thin; scrollbar-color: var(--rose-light) transparent; }
 </style>
 </head>
 <body>
 
+<!-- Pétales -->
+<script>
+  for(let i=0;i<18;i++){
+    const p=document.createElement('div');
+    p.className='petal';
+    p.style.cssText=`left:${Math.random()*100}vw;width:${8+Math.random()*10}px;height:${8+Math.random()*10}px;animation-duration:${5+Math.random()*8}s;animation-delay:${Math.random()*8}s;`;
+    document.body.appendChild(p);
+  }
+</script>
+
 <div class="quiz-container">
+  <div class="header">
+    <div class="hearts">♡ ♥ ♡</div>
+    <h1>Quiz des Amoureux</h1>
+    <p>Découvrez-vous l'un l'autre</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span id="prog-text">Question 1 sur 50</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="question-label" id="q-label">Question 01</div>
   <h2 id="question"></h2>
   <div id="options"></div>
-  <button class="submit-btn" onclick="nextQuestion()">Suivant</button>
+  <button class="submit-btn" onclick="nextQuestion()">Continuer →</button>
 </div>
 
 <script>
-  // Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyBuN7Qwa7rfoCxLjBzl1OZ-Sp-z88vOvZ0",
-  authDomain: "test-274e2.firebaseapp.com",
-  databaseURL: "https://test-274e2-default-rtdb.firebaseio.com",
-  projectId: "test-274e2",
-  storageBucket: "test-274e2.firebasestorage.app",
-  messagingSenderId: "116747127759",
-  appId: "1:116747127759:web:e9901d06d359573e99e0ba",
-  measurementId: "G-W3B8GJJSF1"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyBuN7Qwa7rfoCxLjBzl1OZ-Sp-z88vOvZ0",
+    authDomain: "test-274e2.firebaseapp.com",
+    databaseURL: "https://test-274e2-default-rtdb.firebaseio.com",
+    projectId: "test-274e2",
+    storageBucket: "test-274e2.firebasestorage.app",
+    messagingSenderId: "116747127759",
+    appId: "1:116747127759:web:e9901d06d359573e99e0ba"
+  };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
   const quiz = [
-    {question:"Quel type de films préfères-tu ?", options:["Romantique","Action","Comédie","Horreur"]},
-    {question:"Quelle est ta boisson préférée ?", options:["Café","Thé","Jus naturel","Boissons gazeuses"]},
-    {question:"Quelle saison aimes-tu le plus ?", options:["Été","Hiver","Printemps","Automne"]}
+    {question:"1. Quel genre de films préfères-tu ?", options:["Romantique","Action","Comédie","Horreur"]},
+    {question:"2. Quelle boisson préfères-tu ?", options:["Café","Thé","Jus naturel","Soda"]},
+    {question:"3. Quelle saison préfères-tu ?", options:["L'été","L'hiver","Le printemps","L'automne"]},
+    {question:"4. Quel type de musique écoutes-tu ?", options:["Pop","Rap / Hip-Hop","Classique","Rock"]},
+    {question:"5. Quel plat préfères-tu ?", options:["Couscous","Chorba","Pizza","Sandwich"]},
+    {question:"6. Quel genre d'animé aimes-tu ?", options:["Aventure","Romantique","Comédie","Action"]},
+    {question:"7. Tu préfères sortir avec des amis ou rester à la maison ?", options:["Sortir avec des amis","Rester à la maison","Un peu des deux","Selon l'humeur"]},
+    {question:"8. Quel type de livre aimes-tu ?", options:["Romans","Sciences","Nouvelles","Histoire"]},
+    {question:"9. Quel sport aimes-tu pratiquer ?", options:["Football","Basketball","Jeux vidéo","Aucun"]},
+    {question:"10. Quels gâteaux préfères-tu ?", options:["Ghriba","Baklawa","Gâteau","Biscuits"]},
+    {question:"11. Que fais-tu quand tu as du temps libre ?", options:["Lire un livre","Regarder un film","Faire du sport","Sortir avec des amis"]},
+    {question:"12. Quel type de sport aimes-tu ?", options:["Course à pied","Natation","Football","Je n'aime pas le sport"]},
+    {question:"13. Qu'aimes-tu faire le week-end ?", options:["Te reposer","Sortir en famille","Aller au mall","Voyager"]},
+    {question:"14. Que fais-tu sur internet ?", options:["TikTok","YouTube","Instagram","Jeux en ligne"]},
+    {question:"15. Quel animal préfères-tu ?", options:["Chiens","Chats","Oiseaux","Je n'aime pas les animaux"]},
+    {question:"16. Quel sport aimes-tu regarder ?", options:["Football","Basketball","Tennis","Aucun"]},
+    {question:"17. Quel type de vidéos préfères-tu ?", options:["Comique","Aventure","Documentaire","Horreur"]},
+    {question:"18. Aimes-tu cuisiner ?", options:["Oui","Non","Un peu","Selon l'humeur"]},
+    {question:"19. Joues-tu d'un instrument ?", options:["Piano","Guitare","Batterie","Non"]},
+    {question:"20. Qu'aimes-tu apprendre ?", options:["Nouvelles langues","Programmation","Arts","Rien"]},
+    {question:"21. Si tu avais un super-pouvoir, lequel choisirais-tu ?", options:["Voler","Lire les pensées","Être ultra-rapide","Devenir invisible"]},
+    {question:"22. Pour voyager, tu préfères… ?", options:["La mer","Les montagnes","Une ville historique","Un parc d'attractions"]},
+    {question:"23. Quel animal t'attire le plus ?", options:["Chien","Chat","Oiseau","Animaux sauvages"]},
+    {question:"24. Aimes-tu les surprises ?", options:["Oui, beaucoup","Un peu","Non","Selon les cas"]},
+    {question:"25. Aimes-tu l'aventure ?", options:["Oui","Non","Un peu","Selon l'humeur"]},
+    {question:"26. Si tu gagnais un grand prix, que ferais-tu ?", options:["Voyager","Acheter une maison","Aider la famille","Dépenser pour mes passions"]},
+    {question:"27. Aimerais-tu apprendre à conduire ?", options:["Oui","Non","Bientôt","Selon l'âge"]},
+    {question:"28. Aimes-tu les jeux vidéo ?", options:["Oui","Non","Un peu","Selon l'humeur"]},
+    {question:"29. Aimes-tu dessiner ?", options:["Oui","Non","Un peu","Selon le temps"]},
+    {question:"30. Aimes-tu chanter ?", options:["Oui","Non","Un peu","Seulement sous la douche"]},
+    {question:"31. Es-tu une personne sociable ?", options:["Oui, beaucoup","Un peu","Non","Selon l'humeur"]},
+    {question:"32. Aimes-tu te faire beaucoup d'amis ?", options:["Oui","Non","Peu","Selon les cas"]},
+    {question:"33. Quelle qualité cherches-tu chez un(e) ami(e) ?", options:["La loyauté","La joie de vivre","L'ambition","La tranquillité"]},
+    {question:"34. Crois-tu au coup de foudre ?", options:["Oui","Non","Un peu","Je n'y crois pas"]},
+    {question:"35. Aimes-tu aider les autres ?", options:["Oui","Non","Selon les cas","Rarement"]},
+    {question:"36. La confiance est-elle importante pour toi ?", options:["Oui, beaucoup","Non","Selon la personne","Peu"]},
+    {question:"37. Tu préfères voyager seul(e) ou avec des amis ?", options:["Seul(e)","Avec des amis","Avec la famille","Selon la destination"]},
+    {question:"38. Tu préfères être chez toi ou dehors ?", options:["Chez moi","Dehors","Un peu des deux","Selon l'humeur"]},
+    {question:"39. Aimes-tu rire et t'amuser ?", options:["Oui","Non","Un peu","Selon l'humeur"]},
+    {question:"40. Aimes-tu partager tes secrets ?", options:["Oui","Non","Selon la personne","Rarement"]},
+    {question:"41. Passes-tu beaucoup de temps sur internet ?", options:["Oui","Non","Un peu","Selon le temps"]},
+    {question:"42. Aimes-tu apprendre de nouvelles choses ?", options:["Oui","Non","Un peu","Selon l'humeur"]},
+    {question:"43. Tu préfères le sport en équipe ou individuel ?", options:["En équipe","Individuel","Aucun","Selon l'humeur"]},
+    {question:"44. Aimes-tu la nature ?", options:["Oui, beaucoup","Non","Un peu","Selon le temps"]},
+    {question:"45. Tu préfères la cuisine algérienne ou étrangère ?", options:["Algérienne","Étrangère","Les deux","Aucune"]},
+    {question:"46. Aimes-tu créer des choses de tes mains ?", options:["Oui","Non","Un peu","Selon les besoins"]},
+    {question:"47. Aimes-tu participer à des activités ?", options:["Oui","Non","Rarement","Selon l'activité"]},
+    {question:"48. Tu préfères les films anciens ou récents ?", options:["Les anciens","Les récents","Les deux","Aucun"]},
+    {question:"49. Tu préfères l'aventure en ville ou à la campagne ?", options:["En ville","À la campagne","Les deux","Selon l'humeur"]},
+    {question:"50. Tu préfères apprendre en ligne ou à l'école ?", options:["En ligne","À l'école","Les deux","Selon le temps"]}
   ];
 
   let currentQuestion = 0;
@@ -49,35 +382,64 @@ const firebaseConfig = {
   let selectedOption = null;
 
   function loadQuestion() {
+    const num = currentQuestion + 1;
+    const pct = Math.round((currentQuestion / quiz.length) * 100);
+    document.getElementById('prog-text').textContent = `Question ${num} sur ${quiz.length}`;
+    document.getElementById('prog-pct').textContent = `${pct}%`;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('q-label').textContent = 'Question ' + String(num).padStart(2,'0');
+
     const qEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
+    qEl.style.animation = 'none';
+    qEl.offsetHeight; // reflow
+    qEl.style.animation = '';
     qEl.textContent = quiz[currentQuestion].question;
+
+    const optionsEl = document.getElementById("options");
     optionsEl.innerHTML = "";
-    quiz[currentQuestion].options.forEach(opt=>{
+    quiz[currentQuestion].options.forEach(opt => {
       const div = document.createElement("div");
-      div.className="option";
-      div.textContent=opt;
-      div.onclick=()=>{ document.querySelectorAll(".option").forEach(o=>o.style.background="#fff"); div.style.background="#ffe0b2"; selectedOption=opt; };
+      div.className = "option";
+      div.textContent = opt;
+      div.onclick = () => {
+        document.querySelectorAll(".option").forEach(o => o.classList.remove('selected'));
+        div.classList.add('selected');
+        selectedOption = opt;
+      };
       optionsEl.appendChild(div);
     });
   }
 
-  function nextQuestion(){
-    if(!selectedOption){ alert("Sélectionnez une option !"); return; }
-    userAnswers.push({question:quiz[currentQuestion].question, answer:selectedOption});
-    selectedOption=null;
+  function nextQuestion() {
+    if (!selectedOption) { 
+      const btn = document.querySelector('.submit-btn');
+      btn.style.animation = 'shake .3s ease';
+      setTimeout(() => btn.style.animation = '', 400);
+      return; 
+    }
+    userAnswers.push({ question: quiz[currentQuestion].question, answer: selectedOption });
+    selectedOption = null;
     currentQuestion++;
-    if(currentQuestion<quiz.length){
+    if (currentQuestion < quiz.length) {
       loadQuestion();
     } else {
-      // Envoyer les réponses à Firebase
-      db.ref("responses").push({answers:userAnswers, timestamp:Date.now()});
-      document.querySelector(".quiz-container").innerHTML="<h2>Merci ! Vos réponses ont été envoyées.</h2>";
+      db.ref("responses").push({ answers: userAnswers, timestamp: Date.now() });
+      document.querySelector(".quiz-container").innerHTML = `
+        <div class="fin-wrap">
+          <span class="big-heart">💕</span>
+          <h2>Merci, mon amour !</h2>
+          <p>Tes réponses ont été enregistrées avec tout notre amour.<br><br>
+          <em style="font-family:'Playfair Display',serif;color:var(--rose);">"Se connaître, c'est s'aimer encore plus."</em></p>
+        </div>`;
     }
   }
 
+  // shake keyframe
+  const style = document.createElement('style');
+  style.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}';
+  document.head.appendChild(style);
+
   loadQuestion();
 </script>
-
 </body>
 </html>
