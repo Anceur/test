@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quiz Utilisateur</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+body { font-family: Arial; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+.quiz-container { background:#fff; padding:30px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1); width:400px; }
+h2 { margin-bottom:20px; }
+.option { display:block; margin:10px 0; padding:10px; border:2px solid #ccc; border-radius:10px; cursor:pointer; transition:0.2s; }
+.option:hover { background:#f0f0f0; border-color:#ff8c00; }
+.submit-btn { margin-top:20px; padding:10px 20px; border:none; background:#ff8c00; color:#fff; font-size:16px; border-radius:10px; cursor:pointer; }
+.submit-btn:hover { background:#e67e00; }
+</style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <h2 id="question"></h2>
+  <div id="options"></div>
+  <button class="submit-btn" onclick="nextQuestion()">Suivant</button>
+</div>
+
+<script>
+  // Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBuN7Qwa7rfoCxLjBzl1OZ-Sp-z88vOvZ0",
+  authDomain: "test-274e2.firebaseapp.com",
+  databaseURL: "https://test-274e2-default-rtdb.firebaseio.com",
+  projectId: "test-274e2",
+  storageBucket: "test-274e2.firebasestorage.app",
+  messagingSenderId: "116747127759",
+  appId: "1:116747127759:web:e9901d06d359573e99e0ba",
+  measurementId: "G-W3B8GJJSF1"
+};
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const quiz = [
+    {question:"Quel type de films préfères-tu ?", options:["Romantique","Action","Comédie","Horreur"]},
+    {question:"Quelle est ta boisson préférée ?", options:["Café","Thé","Jus naturel","Boissons gazeuses"]},
+    {question:"Quelle saison aimes-tu le plus ?", options:["Été","Hiver","Printemps","Automne"]}
+  ];
+
+  let currentQuestion = 0;
+  let userAnswers = [];
+  let selectedOption = null;
+
+  function loadQuestion() {
+    const qEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    qEl.textContent = quiz[currentQuestion].question;
+    optionsEl.innerHTML = "";
+    quiz[currentQuestion].options.forEach(opt=>{
+      const div = document.createElement("div");
+      div.className="option";
+      div.textContent=opt;
+      div.onclick=()=>{ document.querySelectorAll(".option").forEach(o=>o.style.background="#fff"); div.style.background="#ffe0b2"; selectedOption=opt; };
+      optionsEl.appendChild(div);
+    });
+  }
+
+  function nextQuestion(){
+    if(!selectedOption){ alert("Sélectionnez une option !"); return; }
+    userAnswers.push({question:quiz[currentQuestion].question, answer:selectedOption});
+    selectedOption=null;
+    currentQuestion++;
+    if(currentQuestion<quiz.length){
+      loadQuestion();
+    } else {
+      // Envoyer les réponses à Firebase
+      db.ref("responses").push({answers:userAnswers, timestamp:Date.now()});
+      document.querySelector(".quiz-container").innerHTML="<h2>Merci ! Vos réponses ont été envoyées.</h2>";
+    }
+  }
+
+  loadQuestion();
+</script>
+
+</body>
+</html>
